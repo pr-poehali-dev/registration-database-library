@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Get all organizations",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Create organization",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "number": 1,
+        "municipality": "г. Москва",
+        "educational_institution": "ГБОУ Школа №1",
+        "organization_name": "Юные исследователи",
+        "contact_details": "test@example.com",
+        "participants_count": 25,
+        "activity_direction": "Научно-техническое",
+        "local_act_details": "Приказ №1 от 01.01.2024",
+        "website_url": "https://example.com"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "organization_name": "Юные исследователи",
+        "municipality": "г. Москва"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

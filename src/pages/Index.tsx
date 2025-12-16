@@ -1,10 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import YouthRegistryForm from '@/components/YouthRegistryForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import {
   Table,
   TableBody,
@@ -65,10 +77,96 @@ const mockLibrary = [
   { id: 4, title: 'Цифровые архивы', author: 'Н.П. Лебедева', year: 2023, category: 'Архивоведение', format: 'PDF' },
 ];
 
+interface YouthOrganization {
+  id: number;
+  number: number;
+  municipality: string;
+  educational_institution: string;
+  organization_name: string;
+  contact_details: string;
+  participants_count: number;
+  activity_direction: string;
+  local_act_details: string;
+  website_url?: string;
+}
+
 export default function Index() {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('year');
+  const [organizations, setOrganizations] = useState<YouthOrganization[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<YouthOrganization | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const fetchOrganizations = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('https://functions.poehali.dev/f5878afa-d007-4999-a9ca-a6b0c122e30a');
+      if (response.ok) {
+        const data = await response.json();
+        setOrganizations(data);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось загрузить данные',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrganizations();
+  }, []);
+
+  const handleEdit = (org: YouthOrganization) => {
+    setEditingOrg(org);
+    setFormOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingOrg(null);
+    setFormOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/f5878afa-d007-4999-a9ca-a6b0c122e30a?id=${deletingId}`,
+        { method: 'DELETE' }
+      );
+      
+      if (response.ok) {
+        toast({
+          title: 'Успешно',
+          description: 'Запись удалена',
+        });
+        fetchOrganizations();
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить запись',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setDeletingId(null);
+    }
+  };
+
+  const confirmDelete = (id: number) => {
+    setDeletingId(id);
+    setDeleteDialogOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -192,42 +290,71 @@ export default function Index() {
           <TabsContent value="registries" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Табличные реестры</CardTitle>
-                <CardDescription>Структурированные данные и документация</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl">Реестр детских и молодёжных объединений</CardTitle>
+                    <CardDescription>Детские и молодежные общественные объединения</CardDescription>
+                  </div>
+                  <Button onClick={handleAdd} className="gap-2">
+                    <Icon name="Plus" size={18} />
+                    Добавить объединение
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Название</TableHead>
-                      <TableHead>Год</TableHead>
-                      <TableHead>Категория</TableHead>
-                      <TableHead>Записей</TableHead>
-                      <TableHead>Статус</TableHead>
-                      <TableHead className="text-right">Действия</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockRegistries.map((registry) => (
-                      <TableRow key={registry.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{registry.title}</TableCell>
-                        <TableCell>{registry.year}</TableCell>
-                        <TableCell>{registry.category}</TableCell>
-                        <TableCell>{registry.entries}</TableCell>
-                        <TableCell>
-                          <Badge variant={registry.status === 'Активен' ? 'default' : 'secondary'}>
-                            {registry.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            <Icon name="Eye" size={16} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                {loading ? (
+                  <div className="text-center py-8 text-muted-foreground">Загрузка...</div>
+                ) : organizations.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Нет записей. Добавьте первое объединение.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[60px]">№</TableHead>
+                          <TableHead>Муниципальное образование</TableHead>
+                          <TableHead>Образовательная организация</TableHead>
+                          <TableHead>Наименование объединения</TableHead>
+                          <TableHead>Участников</TableHead>
+                          <TableHead>Направление</TableHead>
+                          <TableHead className="text-right">Действия</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {organizations.map((org) => (
+                          <TableRow key={org.id} className="hover:bg-muted/50">
+                            <TableCell className="font-medium">{org.number}</TableCell>
+                            <TableCell>{org.municipality}</TableCell>
+                            <TableCell>{org.educational_institution}</TableCell>
+                            <TableCell className="font-medium">{org.organization_name}</TableCell>
+                            <TableCell>{org.participants_count}</TableCell>
+                            <TableCell>{org.activity_direction}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(org)}
+                                >
+                                  <Icon name="Pencil" size={16} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => confirmDelete(org.id)}
+                                >
+                                  <Icon name="Trash2" size={16} />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -339,6 +466,28 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      <YouthRegistryForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        organization={editingOrg}
+        onSuccess={fetchOrganizations}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить запись?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Запись будет удалена из реестра.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Удалить</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
