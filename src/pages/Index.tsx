@@ -178,8 +178,8 @@ export default function Index() {
                 <Icon name="BookOpen" className="text-primary-foreground" size={24} />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-foreground">Академическая библиотека</h1>
-                <p className="text-muted-foreground mt-1">Реестры, конкурсные работы и научные материалы</p>
+                <h1 className="text-4xl font-bold text-foreground">Государственное автономное учреждение дополнительного образования Сахалинской области ресурсный центр "Унисон"</h1>
+                <p className="text-muted-foreground mt-1">Реестры, конкурсные работы и методические материалы</p>
               </div>
             </div>
             <Button variant="outline" className="gap-2">
@@ -197,7 +197,7 @@ export default function Index() {
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                 <Icon name="Database" className="text-primary" size={20} />
               </div>
-              <CardTitle className="text-2xl">156</CardTitle>
+              <CardTitle className="text-2xl">0</CardTitle>
               <CardDescription>Активных реестров</CardDescription>
             </CardHeader>
           </Card>
@@ -207,7 +207,7 @@ export default function Index() {
               <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center mb-2">
                 <Icon name="Award" className="text-accent" size={20} />
               </div>
-              <CardTitle className="text-2xl">342</CardTitle>
+              <CardTitle className="text-2xl">0</CardTitle>
               <CardDescription>Конкурсных работ</CardDescription>
             </CardHeader>
           </Card>
@@ -217,7 +217,7 @@ export default function Index() {
               <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center mb-2">
                 <Icon name="BookMarked" className="text-primary" size={20} />
               </div>
-              <CardTitle className="text-2xl">1,247</CardTitle>
+              <CardTitle className="text-2xl">0</CardTitle>
               <CardDescription>Документов в библиотеке</CardDescription>
             </CardHeader>
           </Card>
@@ -227,7 +227,7 @@ export default function Index() {
               <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center mb-2">
                 <Icon name="FileText" className="text-accent" size={20} />
               </div>
-              <CardTitle className="text-2xl">589</CardTitle>
+              <CardTitle className="text-2xl">0</CardTitle>
               <CardDescription>Файлов PDF и др.</CardDescription>
             </CardHeader>
           </Card>
@@ -293,7 +293,7 @@ export default function Index() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-2xl">Реестр детских и молодёжных объединений</CardTitle>
-                    <CardDescription>Детские и молодежные общественные объединения</CardDescription>
+                    <CardDescription>Детские и молодежные общественные объединения Сахалинской области</CardDescription>
                   </div>
                   <Button onClick={handleAdd} className="gap-2">
                     <Icon name="Plus" size={18} />
